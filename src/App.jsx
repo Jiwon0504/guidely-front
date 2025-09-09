@@ -155,6 +155,21 @@ export default function App() {
     }
   };
 
+  const getGlowEffect = (rarity) => {
+    switch (rarity) {
+      case 'legendary':
+        return 'hover:shadow-[0_0_100px_40px_rgba(251,191,36,0.9),0_0_200px_80px_rgba(251,191,36,0.7),0_0_300px_120px_rgba(251,191,36,0.4)]' // 황금색 초대형 glow
+      case 'epic':
+        return 'hover:shadow-[0_0_100px_40px_rgba(168,85,247,0.9),0_0_200px_80px_rgba(168,85,247,0.7),0_0_300px_120px_rgba(168,85,247,0.4)]' // 보라색 초대형 glow
+      case 'rare':
+        return 'hover:shadow-[0_0_100px_40px_rgba(59,130,246,0.9),0_0_200px_80px_rgba(59,130,246,0.7),0_0_300px_120px_rgba(59,130,246,0.4)]' // 파란색 초대형 glow
+      case 'common':
+        return 'hover:shadow-[0_0_100px_40px_rgba(107,114,128,0.9),0_0_200px_80px_rgba(107,114,128,0.7),0_0_300px_120px_rgba(107,114,128,0.4)]' // 회색 초대형 glow
+      default:
+        return 'hover:shadow-[0_0_100px_40px_rgba(107,114,128,0.9),0_0_200px_80px_rgba(107,114,128,0.7),0_0_300px_120px_rgba(107,114,128,0.4)]' // 회색 초대형 glow
+    }
+  };
+
   const getRarityBorder = (rarity) => {
     switch (rarity) {
       case 'legendary':
@@ -167,6 +182,21 @@ export default function App() {
         return 'border-gray-500'
       default:
         return 'border-gray-500'
+    }
+  };
+
+  const getSelectedShadow = (rarity) => {
+    switch (rarity) {
+      case 'legendary':
+        return 'shadow-2xl shadow-yellow-400/60'
+      case 'epic':
+        return 'shadow-2xl shadow-purple-400/60'
+      case 'rare':
+        return 'shadow-2xl shadow-blue-400/60'
+      case 'common':
+        return 'shadow-2xl shadow-gray-400/60'
+      default:
+        return 'shadow-2xl shadow-gray-400/60'
     }
   };
 
@@ -529,8 +559,8 @@ export default function App() {
                         <Button
                           onClick={handleEndChat}
                           size="sm"
-                          variant="outline"
-                          className="text-xs bg-red-500/20 border-red-500/50 text-red-200 hover:bg-red-500/30 backdrop-blur-sm"
+                          variant="default"
+                          className="text-xs bg-red-600 text-white hover:bg-red-700 border-none"
                         >
                           {language === 'en' ? 'End chat' : '대화 종료하기'}
                         </Button>
@@ -636,9 +666,9 @@ export default function App() {
               onClick={handleBackToHome}
               variant="ghost"
               size="lg"
-              className="text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-300"
+              className="px-6 py-3 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-300 rounded-lg"
             >
-              <ArrowLeft className="w-5 h-5 mr-2" />
+              <ArrowLeft className="w-5 h-5 mr-3" />
               {language === 'en' ? 'Home' : '홈으로'}
             </Button>
           </div>
@@ -810,9 +840,9 @@ export default function App() {
             onClick={handleBackToHome}
             variant="ghost"
             size="lg"
-            className="text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-300"
+            className="px-6 py-3 text-white hover:bg-white/20 backdrop-blur-sm border border-white/20 transition-all duration-300 rounded-lg"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5 mr-3" />
             {language === 'en' ? 'Home' : '홈으로'}
           </Button>
         </div>
@@ -835,8 +865,8 @@ export default function App() {
             <div
               className={`
                 relative cursor-pointer transition-all duration-300 transform hover:scale-105
-                ${hoveredCharacter === character.id 
-                  ? 'p-[2px] bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl' 
+                ${selectedCharacter?.id === character.id
+                  ? 'p-[3px] bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 rounded-xl'
                   : ''
                 }
               `}
@@ -846,13 +876,10 @@ export default function App() {
               <Card
                 key={character.id}
                 className={`
-                  relative min-h-[500px]
-                  ${selectedCharacter?.id === character.id
-                    ? 'ring-4 ring-yellow-400'
-                    : ''
-                  }
+                  relative h-[480px] flex flex-col
                   bg-gradient-to-br ${getRarityBackground(character.rarity)} overflow-hidden backdrop-blur-md
-                  border-none rounded-xl shadow-lg hover:shadow-2xl
+                  border-none rounded-xl shadow-lg transition-shadow duration-300 ease-in-out
+                  ${getGlowEffect(character.rarity)}
                 `}
               onClick={() => handleCharacterSelect(character)}
             >
@@ -865,17 +892,9 @@ export default function App() {
                   {character.level}
                 </div>
               </div>
-              {/* 선택 표시 */}
-              {selectedCharacter?.id === character.id && (
-                <div className="absolute top-4 right-4 z-10">
-                  <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-                  </div>
-                </div>
-              )}
-              <CardContent className="p-6 h-full flex flex-col">
+              <CardContent className="p-6 h-[400px] flex flex-col">
                 {/* 캐릭터 이미지 영역 */}
-                <div className="relative w-full h-60 mt-4 mb-4 bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg flex items-center justify-center overflow-hidden shadow-inner">
+                <div className="relative w-full h-60 mt-4 mb-4 bg-transparent rounded-lg flex items-center justify-center overflow-hidden">
                   {character.image ? (
                     <img 
                       src={character.image} 
@@ -900,7 +919,7 @@ export default function App() {
                   )}
                 </div>
                 {/* 캐릭터 정보 */}
-                <div className="text-center flex-1 flex flex-col">
+                <div className="text-center h-32 flex flex-col justify-center overflow-hidden">
                   <div>
                     {language === 'en' ? (
                       <>
@@ -923,7 +942,7 @@ export default function App() {
                         )}
                       </>
                     )}
-                    <p className="text-white/90 text-base mb-4 leading-relaxed font-medium">
+                    <p className="text-white/90 text-sm leading-relaxed font-medium line-clamp-3">
                       {language === 'en' ? character.descriptionEn : character.description}
                     </p>
                   </div>
