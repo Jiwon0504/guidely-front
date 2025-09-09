@@ -6,8 +6,9 @@ export default function Recorder({ onTranscribedText }) {
   const audioChunks = useRef([]);
 
   // 🔑 Azure Speech API 정보 (환경변수에서 가져옴)
-  const AZURE_KEY = import.meta.env.VITE_AZURE_SPEECH_KEY;
-  const REGION = import.meta.env.VITE_AZURE_REGION;
+  // 프로덕션에서는 서버에서 API 호출하거나 다른 보안 방법 사용 권장
+  const AZURE_KEY = import.meta.env.VITE_AZURE_SPEECH_KEY || "YOUR_API_KEY_HERE";
+  const REGION = import.meta.env.VITE_AZURE_REGION || "koreacentral";
 
   // 🎙️ 녹음 시작
   const startRecording = async () => {
