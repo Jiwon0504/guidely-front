@@ -5,10 +5,16 @@ export default function Recorder({ onTranscribedText }) {
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
 
-  // 🔑 Azure Speech API 정보 (환경변수에서 가져옴)
-  // 프로덕션에서는 서버에서 API 호출하거나 다른 보안 방법 사용 권장
-  const AZURE_KEY = import.meta.env.VITE_AZURE_SPEECH_KEY || "YOUR_API_KEY_HERE";
+  // 🔑 Azure Speech API 정보
+  // ⚠️ 보안 경고: 프로덕션에서는 API key를 클라이언트에 노출하지 마세요!
+  // 실제 배포 시에는 서버 사이드에서 음성 인식을 처리하거나 토큰 기반 인증을 사용하세요
+  const AZURE_KEY = import.meta.env.DEV ? import.meta.env.VITE_AZURE_SPEECH_KEY : null;
   const REGION = import.meta.env.VITE_AZURE_REGION || "koreacentral";
+
+  // 프로덕션에서는 API key 없이 기능 비활성화
+  if (!AZURE_KEY && import.meta.env.PROD) {
+    console.warn('음성 인식 기능은 개발 환경에서만 사용 가능합니다.');
+  }
 
   // 🎙️ 녹음 시작
   const startRecording = async () => {
@@ -39,6 +45,13 @@ export default function Recorder({ onTranscribedText }) {
   };
   // 📡 Azure API 호출
     async function sendAudioToAzure(audioBlob) {
+        // 프로덕션 환경에서는 API key가 없으므로 기능 비활성화
+        if (!AZURE_KEY) {
+            console.warn('음성 인식 기능을 사용할 수 없습니다. 개발 환경에서만 사용 가능합니다.');
+            onTranscribedText('음성 인식은 개발 환경에서만 사용 가능합니다.');
+            return;
+        }
+
         try {
         const arrayBuffer = await audioBlob.arrayBuffer();
     
