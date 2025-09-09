@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
 import { Input } from "./components/ui/input";
-import { ScrollArea } from "./components/ui/scroll-area";
 import { PhotoCard } from "./components/PhotoCard";
 import { Send, ArrowLeft, Mic, Heart } from "lucide-react";
 import rumiImage from "./assets/76c70bdc264bc6d920da9e65cc49744ccffd1f0e.png";
@@ -18,7 +17,7 @@ import jinuBg from "./assets/4c44c31a43a93232a02ea00210a44f962acfc59f.png";
 import transitionBg1 from "./assets/b7849cb38b3409941691afb7821cfd234223c641.png";
 import transitionBg2 from "./assets/66ec66f92d58f4ce9239f67f34f6b8ad2abaa407.png";
 import transitionBg3 from "./assets/acace210f12a3f453253423209de0aa1f9f356c7.png";
-
+import Recorder from "./components/Recorder";
 export default function App() {
   const [language, setLanguage] = useState('ko');
   const [currentPage, setCurrentPage] = useState('home');
@@ -31,7 +30,6 @@ export default function App() {
   const [transitionBackground, setTransitionBackground] = useState(null);
   const [selectedFavoriteArt, setSelectedFavoriteArt] = useState(null);
   const [showPhotoCard, setShowPhotoCard] = useState(false);
-
   // 시간 포맷 함수
   const formatTime = (date) => {
     if (language === 'en') {
@@ -44,10 +42,8 @@ export default function App() {
       return date.toLocaleTimeString();
     }
   };
-
   const museumImages = [museumImage1, museumImage2];
   const transitionBackgrounds = [transitionBg1, transitionBg2, transitionBg3];
-
   // 배경 이미지 슬라이드쇼
   useEffect(() => {
     if (currentPage === 'home') {
@@ -56,15 +52,28 @@ export default function App() {
           (prevIndex + 1) % museumImages.length
         );
       }, 5000); // 5초마다 변경
-
       return () => clearInterval(interval);
     }
   }, [currentPage, museumImages.length]);
 
+  // 채팅 페이지 진입 시 환영 메시지 자동 생성
+  useEffect(() => {
+    if (currentPage === 'chat' && selectedCharacter && messages.length === 0) {
+      const welcomeMessage = {
+        id: 1,
+        type: 'guide',
+        content: language === 'en' 
+          ? `Hello! I'm ${selectedCharacter.nameEn}, your personal guide at the National Museum of Korea. I'm excited to help you explore our amazing collection! What would you like to know about?`
+          : `안녕하세요! 저는 국립중앙박물관의 가이드 ${selectedCharacter.name}입니다. 오늘 국립중앙박물관에 오신 것을 환영해요! 궁금한 것이 있으시면 언제든 물어보세요.`,
+        timestamp: formatTime(new Date())
+      };
+      setMessages([welcomeMessage]);
+    }
+  }, [currentPage, selectedCharacter, language, messages.length]);
+
   const handleStartGuide = () => {
     setCurrentPage('character-select');
   };
-
   const content = {
     ko: {
       title: "국립중앙박물관 AI 큐레이터 · Guidely",
@@ -77,7 +86,6 @@ export default function App() {
       button: "Start Guidely"
     }
   };
-
   const characters = [
     {
       id: 1,
@@ -124,7 +132,6 @@ export default function App() {
       backgroundImage: jinuBg
     }
   ];
-
   const getRarityColor = (rarity) => {
     switch (rarity) {
       case 'legendary':
@@ -139,7 +146,6 @@ export default function App() {
         return 'from-gray-400 to-gray-500'
     }
   };
-
   const getRarityBackground = (rarity) => {
     switch (rarity) {
       case 'legendary':
@@ -154,22 +160,20 @@ export default function App() {
         return 'from-gray-400 to-gray-500'
     }
   };
-
   const getGlowEffect = (rarity) => {
     switch (rarity) {
       case 'legendary':
-        return 'hover:shadow-[0_0_100px_40px_rgba(251,191,36,0.9),0_0_200px_80px_rgba(251,191,36,0.7),0_0_300px_120px_rgba(251,191,36,0.4)]' // 황금색 초대형 glow
+        return 'hover:shadow-[0_0_60px_20px_rgba(251,191,36,1),0_0_120px_50px_rgba(251,191,36,0.8),0_0_200px_80px_rgba(251,191,36,0.6),0_0_300px_120px_rgba(251,191,36,0.4),0_0_400px_150px_rgba(251,191,36,0.2)]' // 황금색 극강 glow
       case 'epic':
-        return 'hover:shadow-[0_0_100px_40px_rgba(168,85,247,0.9),0_0_200px_80px_rgba(168,85,247,0.7),0_0_300px_120px_rgba(168,85,247,0.4)]' // 보라색 초대형 glow
+        return 'hover:shadow-[0_0_60px_20px_rgba(168,85,247,1),0_0_120px_50px_rgba(168,85,247,0.8),0_0_200px_80px_rgba(168,85,247,0.6),0_0_300px_120px_rgba(168,85,247,0.4),0_0_400px_150px_rgba(168,85,247,0.2)]' // 보라색 극강 glow
       case 'rare':
-        return 'hover:shadow-[0_0_100px_40px_rgba(59,130,246,0.9),0_0_200px_80px_rgba(59,130,246,0.7),0_0_300px_120px_rgba(59,130,246,0.4)]' // 파란색 초대형 glow
+        return 'hover:shadow-[0_0_60px_20px_rgba(59,130,246,1),0_0_120px_50px_rgba(59,130,246,0.8),0_0_200px_80px_rgba(59,130,246,0.6),0_0_300px_120px_rgba(59,130,246,0.4),0_0_400px_150px_rgba(59,130,246,0.2)]' // 파란색 극강 glow
       case 'common':
-        return 'hover:shadow-[0_0_100px_40px_rgba(107,114,128,0.9),0_0_200px_80px_rgba(107,114,128,0.7),0_0_300px_120px_rgba(107,114,128,0.4)]' // 회색 초대형 glow
+        return 'hover:shadow-[0_0_60px_20px_rgba(107,114,128,1),0_0_120px_50px_rgba(107,114,128,0.8),0_0_200px_80px_rgba(107,114,128,0.6),0_0_300px_120px_rgba(107,114,128,0.4),0_0_400px_150px_rgba(107,114,128,0.2)]' // 회색 극강 glow
       default:
-        return 'hover:shadow-[0_0_100px_40px_rgba(107,114,128,0.9),0_0_200px_80px_rgba(107,114,128,0.7),0_0_300px_120px_rgba(107,114,128,0.4)]' // 회색 초대형 glow
+        return 'hover:shadow-[0_0_60px_20px_rgba(107,114,128,1),0_0_120px_50px_rgba(107,114,128,0.8),0_0_200px_80px_rgba(107,114,128,0.6),0_0_300px_120px_rgba(107,114,128,0.4),0_0_400px_150px_rgba(107,114,128,0.2)]' // 회색 극강 glow
     }
   };
-
   const getRarityBorder = (rarity) => {
     switch (rarity) {
       case 'legendary':
@@ -184,7 +188,6 @@ export default function App() {
         return 'border-gray-500'
     }
   };
-
   const getSelectedShadow = (rarity) => {
     switch (rarity) {
       case 'legendary':
@@ -199,11 +202,9 @@ export default function App() {
         return 'shadow-2xl shadow-gray-400/60'
     }
   };
-
   const handleCharacterSelect = (character) => {
     setSelectedCharacter(character);
   };
-
   const handleConfirm = () => {
     if (selectedCharacter) {
       // 랜덤 배경 이미지 선택
@@ -232,7 +233,6 @@ export default function App() {
       }, 1500);
     }
   };
-
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
       const newMessage = {
@@ -260,23 +260,19 @@ export default function App() {
       }, 1000);
     }
   };
-
   const handleBackToGuideSelect = () => {
     setCurrentPage('character-select');
     setMessages([]);
   };
-
   const handleBackToHome = () => {
     setCurrentPage('home');
     setSelectedCharacter(null);
     setSelectedFavoriteArt(null);
     setShowPhotoCard(false);
   };
-
   const handleEndChat = () => {
     setCurrentPage('summary');
   };
-
   const handleLearnMore = (messageContent) => {
     const learnMoreMessage = language === 'en' 
       ? `Tell me more about: "${messageContent}"`
@@ -305,7 +301,6 @@ export default function App() {
       setMessages(prev => [...prev, guideResponse]);
     }, 1000);
   };
-
   const recommendedQueries = language === 'en' ? [
     "The Top 5 most-viewed artworks",
     "2F facilities location guide", 
@@ -315,7 +310,6 @@ export default function App() {
     "2F 편의시설 위치 안내",
     "사유의 방 작품 설명"
   ];
-
   const handleRecommendedQuery = (query) => {
     setInputMessage(query);
     // 바로 메시지 전송
@@ -359,7 +353,6 @@ export default function App() {
       setMessages(prev => [...prev, response]);
     }, 1000);
   };
-
   if (currentPage === 'home') {
     return (
       <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
@@ -382,7 +375,6 @@ export default function App() {
             </div>
           ))}
         </div>
-
         {/* 컨텐츠 영역 */}
         <div className="relative z-10 text-center space-y-8 max-w-5xl mx-auto px-6">
           {/* 언어 설정 버튼 */}
@@ -412,7 +404,6 @@ export default function App() {
               English
             </Button>
           </div>
-
           {/* 메인 타이틀 */}
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight whitespace-nowrap drop-shadow-2xl">
             {content[language].title}
@@ -434,7 +425,6 @@ export default function App() {
             </Button>
           </div>
         </div>
-
         {/* 이미지 인디케이터 */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
           {museumImages.map((_, index) => (
@@ -452,7 +442,6 @@ export default function App() {
       </div>
     );
   }
-
   // 전환 효과
   if (isTransitioning) {
     return (
@@ -491,20 +480,25 @@ export default function App() {
   // 채팅 페이지
   if (currentPage === 'chat') {
     return (
-      <div className="min-h-screen relative flex flex-col overflow-hidden">
+      <div className="min-h-screen w-full relative flex flex-col bg-black" style={{height: '100vh'}}>
         {/* 배경 이미지 */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 z-0">
           <img
-            src={selectedCharacter.backgroundImage}
-            alt={`${selectedCharacter.name} 배경`}
+            src={selectedCharacter?.backgroundImage}
+            alt={`${selectedCharacter?.name || ''} 배경`}
             className="w-full h-full object-cover"
           />
           {/* 오버레이 */}
           <div className="absolute inset-0 bg-black/60"></div>
         </div>
+
         {/* 헤더 */}
-        <div className={`relative z-10 bg-gradient-to-r ${getRarityColor(selectedCharacter.rarity)} bg-opacity-90 backdrop-blur-sm p-4 shadow-lg`}>
-          <div className="flex items-center gap-4 max-w-4xl mx-auto">
+        <div
+          className={`relative z-10 bg-gradient-to-r ${
+            selectedCharacter ? getRarityColor(selectedCharacter.rarity) : 'from-gray-500 to-gray-600'
+          } bg-opacity-90 backdrop-blur-sm p-4 shadow-lg flex-shrink-0`}
+        >
+          <div className="flex items-center gap-4 px-4">
             <Button
               onClick={handleBackToGuideSelect}
               variant="ghost"
@@ -513,118 +507,136 @@ export default function App() {
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <img 
-              src={selectedCharacter.image} 
-              alt={selectedCharacter.name}
-              className="w-12 h-12 rounded-full object-cover border-2 border-white/50"
-            />
-            <div>
-              <h2 className="text-white font-bold text-lg">{selectedCharacter.name}</h2>
-              <p className="text-white/80 text-sm">{selectedCharacter.nameEn}</p>
-            </div>
+            {selectedCharacter && (
+              <>
+                <img
+                  src={selectedCharacter.image}
+                  alt={selectedCharacter.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-white/50"
+                />
+                <div>
+                  <h2 className="text-white font-bold text-lg">{selectedCharacter.name}</h2>
+                  <p className="text-white/80 text-sm">{selectedCharacter.nameEn}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         {/* 메시지 영역 */}
-        <div className="relative z-10 flex-1 max-w-4xl mx-auto w-full p-4">
-          <ScrollArea className="h-[calc(100vh-200px)]">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className="space-y-2">
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto p-4">
+          <div className="space-y-4">
+            {messages.map((message) => (
+              <div key={message.id} className="space-y-2">
+                <div
+                  className={`flex ${
+                    message.type === 'user' ? 'justify-end' : 'justify-start'
+                  }`}
+                >
                   <div
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                       message.type === 'user'
                         ? 'bg-blue-600 text-white'
-                        : `bg-gradient-to-r ${getRarityColor(selectedCharacter.rarity)} text-white`
-                    }`}>
-                      <p className="text-sm">{message.content}</p>
-                      <p className="text-xs opacity-70 mt-1">{message.timestamp}</p>
+                        : `bg-gradient-to-r ${
+                            selectedCharacter
+                              ? getRarityColor(selectedCharacter.rarity)
+                              : 'from-gray-500 to-gray-600'
+                          } text-white`
+                    }`}
+                  >
+                    <p className="text-sm">{message.content}</p>
+                    <p className="text-xs opacity-70 mt-1">{message.timestamp}</p>
+                  </div>
+                </div>
+
+                {/* 가이드 메시지 아래에만 액션 버튼들 표시 */}
+                {message.type === 'guide' && (
+                  <div className="flex justify-start">
+                    <div className="flex gap-2 ml-2">
+                      <Button
+                        onClick={() => handleLearnMore(message.content)}
+                        size="sm"
+                        variant="outline"
+                        className="text-xs bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
+                      >
+                        {language === 'en'
+                          ? 'Learn more'
+                          : '이 주제에 대해 더 알려줘!'}
+                      </Button>
+                      <Button
+                        onClick={handleEndChat}
+                        size="sm"
+                        variant="default"
+                        className="text-xs bg-red-600 text-white hover:bg-red-700 border-none"
+                      >
+                        {language === 'en' ? 'End chat' : '대화 종료하기'}
+                      </Button>
                     </div>
                   </div>
-                  
-                  {/* 가이드 메시지 아래에만 액션 버튼들 표시 */}
-                  {message.type === 'guide' && (
-                    <div className="flex justify-start">
-                      <div className="flex gap-2 ml-2">
-                        <Button
-                          onClick={() => handleLearnMore(message.content)}
-                          size="sm"
-                          variant="outline"
-                          className="text-xs bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
-                        >
-                          {language === 'en' ? 'Learn more' : '이 주제에 대해 더 알려줘!'}
-                        </Button>
-                        <Button
-                          onClick={handleEndChat}
-                          size="sm"
-                          variant="default"
-                          className="text-xs bg-red-600 text-white hover:bg-red-700 border-none"
-                        >
-                          {language === 'en' ? 'End chat' : '대화 종료하기'}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* 추천 검색어 버블 */}
-        <div className="relative z-10 border-t border-gray-700/30 px-4 pt-4 bg-black/30 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto">
-            <p className="text-white/80 text-sm mb-3">
-              {language === 'en' ? 'Try asking...' : '이렇게 질문해보세요!'}
-            </p>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {recommendedQueries.map((query, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleRecommendedQuery(query)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 bg-gradient-to-r ${getRarityColor(selectedCharacter.rarity)} bg-opacity-20 border border-current text-white hover:bg-opacity-30 backdrop-blur-sm`}
-                >
-                  {query}
-                </button>
-              ))}
-            </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* 입력 영역 */}
-        <div className="relative z-10 px-4 pb-4 bg-black/30 backdrop-blur-sm">
-          <div className="max-w-4xl mx-auto flex gap-2">
-            <Input
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              placeholder={language === 'en' ? 'Type a message...' : '메시지를 입력하세요...'}
-              className="flex-1 bg-black/40 backdrop-blur-sm border-gray-500/50 text-white placeholder-gray-300"
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            />
-            <Button
-              onClick={() => {
-                // 음성 입력 기능 구현 예정
-                console.log('음성 입력 기능 준비 중...');
-              }}
-              className="bg-black/40 backdrop-blur-sm border border-gray-500/50 text-white hover:bg-black/60 transition-all duration-200"
-            >
-              <Mic className="w-4 h-4" />
-            </Button>
-            <Button
-              onClick={handleSendMessage}
-              disabled={!inputMessage.trim()}
-              className={`bg-gradient-to-r ${getRarityColor(selectedCharacter.rarity)} hover:opacity-90 text-white`}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+        {/* 하단 고정 영역 */}
+        <div className="relative z-10 bg-black/30 backdrop-blur-sm border-t border-gray-700/30 flex-shrink-0">
+          {/* 추천 검색어 버블 */}
+          <div className="px-4 pt-4">
+            <div className="mx-auto">
+              <p className="text-white/80 text-sm mb-3">
+                {language === 'en' ? 'Try asking...' : '이렇게 질문해보세요!'}
+              </p>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {recommendedQueries.map((query, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleRecommendedQuery(query)}
+                    className={`px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 bg-gradient-to-r ${
+                      selectedCharacter
+                        ? getRarityColor(selectedCharacter.rarity)
+                        : 'from-gray-500 to-gray-600'
+                    } bg-opacity-20 border border-current text-white hover:bg-opacity-30 backdrop-blur-sm`}
+                  >
+                    {query}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 입력 영역 */}
+          <div className="px-4 pb-4">
+            <div className="flex gap-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder={
+                  language === 'en' ? 'Type a message...' : '메시지를 입력하세요...'
+                }
+                className="flex-1 bg-white/90 backdrop-blur-sm border-gray-500/50 text-black placeholder-gray-500"
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              />
+              {/* 🎤 Recorder 컴포넌트 */}
+              <Recorder onTranscribedText={(text) => setInputMessage(text)} />
+              <Button
+                onClick={handleSendMessage}
+                disabled={!inputMessage.trim()}
+                className={`bg-gradient-to-r ${
+                  selectedCharacter
+                    ? getRarityColor(selectedCharacter.rarity)
+                    : 'from-gray-500 to-gray-600'
+                } hover:opacity-90 text-white`}
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
-
+ 
   // 관람 후기 페이지
   if (currentPage === 'summary') {
     const visitPhotos = [
@@ -649,7 +661,6 @@ export default function App() {
         title: language === 'en' ? 'Traditional Art' : '전통 예술'
       }
     ];
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
         {/* 배경 효과 */}
@@ -658,7 +669,6 @@ export default function App() {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
           <div className="absolute top-40 left-1/2 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
         </div>
-
         <div className="relative z-10 w-full max-w-6xl">
           {/* 뒤로가기 버튼 */}
           <div className="absolute top-0 left-0">
@@ -672,7 +682,6 @@ export default function App() {
               {language === 'en' ? 'Home' : '홈으로'}
             </Button>
           </div>
-
           {/* 제목 */}
           <div className="text-center mb-12 pt-16">
             <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
@@ -707,7 +716,6 @@ export default function App() {
               </div>
             )}
           </div>
-
           {/* 관람 사진들 */}
           <div className="mb-8">
             <h2 className="text-center text-2xl text-white mb-6">
@@ -752,8 +760,7 @@ export default function App() {
                 </Card>
               ))}
             </div>
-            
-            {/* 선택된 작품 정보 */}
+                        {/* 선택된 작품 정보 */}
             {selectedFavoriteArt && (
               <div className="text-center">
                 <p className="text-white/80 text-sm">
@@ -765,7 +772,6 @@ export default function App() {
               </div>
             )}
           </div>
-
           {/* 하단 액션 버튼들 */}
           <div className="text-center space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -823,7 +829,6 @@ export default function App() {
       </div>
     );
   }
-
   // 캐릭터 선택 페이지
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
@@ -846,7 +851,6 @@ export default function App() {
             {language === 'en' ? 'Home' : '홈으로'}
           </Button>
         </div>
-
         {/* 제목 */}
         <div className="text-center mb-12 pt-16">
           <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 bg-clip-text text-transparent">
