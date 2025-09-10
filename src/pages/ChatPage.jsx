@@ -3,6 +3,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Send, ArrowLeft } from "lucide-react";
 import Recorder from "../components/Recorder";
+import TextToSpeech from "../components/TextToSpeech";
 
 export default function ChatPage({ 
   language, 
@@ -166,6 +167,7 @@ export default function ChatPage({
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
             />
             {/* 🎤 Recorder 컴포넌트 */}
+            <TextToSpeech text={inputMessage} />
             <Recorder onTranscribedText={(text) => setInputMessage(text)} />
             <Button
               onClick={handleSendMessage}

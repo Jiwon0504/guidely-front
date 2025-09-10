@@ -8,50 +8,97 @@ export default function WordCloudComponent({ language, data = [] }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('WordCloudComponent - 받은 데이터:', data);
-    if (data && data.length > 0) {
-      // props로 받은 데이터 사용
-      console.log('API 데이터 사용:', data);
-      setWords(data);
-      setIsLoading(false);
-    } else {
-      // 데이터가 없을 때 기본 키워드 사용
-      console.log('기본 데이터 사용');
-      const defaultWords = language === 'en' ? [
-        ['Art', 25],
-        ['History', 22],
-        ['Culture', 20],
-        ['Beauty', 18],
-        ['Tradition', 16],
-        ['Museum', 15],
-        ['Exhibition', 14],
-        ['Korean', 13],
-        ['Ancient', 12],
-        ['Masterpiece', 11],
-        ['Heritage', 10],
-        ['Aesthetic', 9],
-        ['Timeless', 8],
-        ['Inspiration', 7]
-      ] : [
-        ['예술', 25],
-        ['역사', 22],
-        ['문화', 20],
-        ['아름다움', 18],
-        ['전통', 16],
-        ['박물관', 15],
-        ['전시', 14],
-        ['한국', 13],
-        ['고대', 12],
-        ['명작', 11],
-        ['유산', 10],
-        ['미학', 9],
-        ['영원', 8],
-        ['영감', 7]
-      ];
-      setWords(defaultWords);
-      setIsLoading(false);
-    }
-  }, [language, data]);
+    const fetchSentences = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'}/chat/all_sentences`
+        );
+        if (!response.ok) throw new Error("데이터를 불러오는 데 실패했습니다.");
+
+        const data = await response.json();
+        console.log("받아온 데이터:", data);
+
+        // 문장을 단어로 나누고 단어 리스트 생성
+        const wordList = [];
+        if (data.sentences && data.sentences.length > 0) {
+          data.sentences.forEach((sentence) => {
+            const words = sentence.summary.split(" ");
+            words.forEach((word) => {
+              // 단어를 개별 가중치와 함께 추가 (랜덤 가중치 또는 특정 규칙 적용)
+              wordList.push([word, Math.floor(Math.random() * 20) + 10]);
+            });
+          });
+        } else {
+          // API 데이터가 없을 때 기본 키워드 사용
+          const defaultWords = language === 'en' ? [
+            ['Art', 25],
+            ['History', 22],
+            ['Culture', 20],
+            ['Beauty', 18],
+            ['Tradition', 16],
+            ['Museum', 15],
+            ['Exhibition', 14],
+            ['Korean', 13],
+            ['Ancient', 12],
+            ['Masterpiece', 11],
+            ['Heritage', 10],
+            ['Aesthetic', 9],
+            ['Timeless', 8],
+            ['Inspiration', 7]
+          ] : [
+            ['예술', 25],
+            ['역사', 22],
+            ['문화', 20],
+            ['아름다움', 18],
+            ['전통', 16],
+            ['박물관', 15],
+            ['전시', 14],
+            ['한국', 13],
+            ['고대', 12],
+            ['명작', 11],
+            ['유산', 10],
+            ['미학', 9],
+            ['영원', 8],
+            ['영감', 7]
+          ];
+          wordList.push(...defaultWords);
+        }
+        setWords(wordList);
+      } catch (error) {
+        console.error("API 요청 중 오류:", error);
+        // 에러 시 기본 키워드 사용
+        const defaultWords = language === 'en' ? [
+          ['Art', 25],
+          ['History', 22],
+          ['Culture', 20],
+          ['Beauty', 18],
+          ['Tradition', 16],
+          ['Museum', 15],
+          ['Exhibition', 14],
+          ['Korean', 13],
+          ['Ancient', 12],
+          ['Masterpiece', 11]
+        ] : [
+          ['예술', 25],
+          ['역사', 22],
+          ['문화', 20],
+          ['아름다움', 18],
+          ['전통', 16],
+          ['박물관', 15],
+          ['전시', 14],
+          ['한국', 13],
+          ['고대', 12],
+          ['명작', 11]
+        ];
+        setWords(defaultWords);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSentences();
+  }, [language]);
 
   useEffect(() => {
     if (!words.length || isLoading) return;
