@@ -22,6 +22,7 @@ import transitionBg1 from "./assets/b7849cb38b3409941691afb7821cfd234223c641.png
 import transitionBg2 from "./assets/66ec66f92d58f4ce9239f67f34f6b8ad2abaa407.png";
 import transitionBg3 from "./assets/acace210f12a3f453253423209de0aa1f9f356c7.png";
 import Recorder from "./components/Recorder";
+import { startConversation } from "./api/conversationsApi";
 export default function App() {
   const [language, setLanguage] = useState('ko');
   const [currentPage, setCurrentPage] = useState('home');
@@ -33,7 +34,7 @@ export default function App() {
   const [transitionBackground, setTransitionBackground] = useState(null);
   const [selectedFavoriteArt, setSelectedFavoriteArt] = useState(null);
   const [showPhotoCard, setShowPhotoCard] = useState(false);
-  
+
   // 시간 포맷 함수
   const formatTime = (date) => {
     if (language === 'en') {
@@ -46,7 +47,7 @@ export default function App() {
       return date.toLocaleTimeString();
     }
   };
-  
+
   const transitionBackgrounds = [transitionBg1, transitionBg2, transitionBg3];
 
   // 채팅 페이지 진입 시 환영 메시지 자동 생성
@@ -86,19 +87,45 @@ export default function App() {
         setCurrentPage('chat');
         setIsTransitioning(false);
         setTransitionBackground(null);
-        // 첫 인사 메시지 추가
-        const welcomeMessage = language === 'en' 
-          ? `Hello! I'm ${selectedCharacter.nameEn}. I'll help you explore the National Museum of Korea today. Feel free to ask me anything!`
-          : `안녕하세요! 저는 ${selectedCharacter.name}입니다. 오늘 국립중앙박물관 관람을 도와드리겠습니다. 궁금한 것이 있으시면 언제든 물어보세요!`;
-        
-        setMessages([
-          {
-            id: 1,
+        // 대화 세션 시작 및 시스템 메시지 + 환영 메시지 추가
+        (async () => {
+          const res = await startConversation({ body: { language } });
+
+          const welcomeMessage = {
+            id: 2,
             type: 'guide',
-            content: welcomeMessage,
+            content: language === 'en' 
+              ? `Hello! I'm ${selectedCharacter.nameEn}. I'll help you explore the National Museum of Korea today. Feel free to ask me anything!`
+              : `안녕하세요! 저는 ${selectedCharacter.name}입니다. 오늘 국립중앙박물관 관람을 도와드리겠습니다. 궁금한 것이 있으시면 언제든 물어보세요!`,
             timestamp: formatTime(new Date())
+          };
+
+          const messagesToSet = [];
+          if (res?.success && res?.data?.sessionId != null) {
+            const sessionId = res.data.sessionId;
+            messagesToSet.push({
+              id: 1,
+              type: 'system',
+              content: language === 'en'
+                ? `Chat ID ${sessionId} has joined the conversation.`
+                : `채팅 ID ${sessionId}이 대화에 참여했습니다.`,
+              timestamp: formatTime(new Date())
+            });
+          } else {
+            console.error('startConversation failed:', res);
+            messagesToSet.push({
+              id: 1,
+              type: 'system',
+              content: language === 'en'
+                ? 'Failed to start a chat session. Starting in offline mode.'
+                : '세션 시작에 실패했습니다. 오프라인 모드로 진행합니다.',
+              timestamp: formatTime(new Date())
+            });
           }
-        ]);
+
+          messagesToSet.push(welcomeMessage);
+          setMessages(messagesToSet);
+        })();
       }, 1500);
     }
   };
@@ -165,7 +192,7 @@ export default function App() {
       />
     );
   }
- 
+
   // 관람 후기 페이지
   if (currentPage === 'summary') {
     return (
