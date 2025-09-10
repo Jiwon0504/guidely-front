@@ -10,7 +10,7 @@ export default function WordCloudComponent({ language }) {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `${process.env.REACT_APP_BACKEND_URL}/chat/all_sentences`
+          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'}/chat/all_sentences`
         );
         if (!response.ok) throw new Error("데이터를 불러오는 데 실패했습니다.");
 
