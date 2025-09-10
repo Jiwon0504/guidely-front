@@ -12,22 +12,18 @@ export default function WordCloudComponent({ language, data = [] }) {
       try {
         setIsLoading(true);
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'}/chat/all_sentences`
+          `${import.meta.env.VITE_SUMMARY_STATISTICS_URL}/api/v1/summary-statistics/word-frequency`
         );
         if (!response.ok) throw new Error("데이터를 불러오는 데 실패했습니다.");
 
         const data = await response.json();
         console.log("받아온 데이터:", data);
 
-        // 문장을 단어로 나누고 단어 리스트 생성
+        // API에서 받은 단어 빈도 데이터를 워드클라우드 형식으로 변환
         const wordList = [];
-        if (data.sentences && data.sentences.length > 0) {
-          data.sentences.forEach((sentence) => {
-            const words = sentence.summary.split(" ");
-            words.forEach((word) => {
-              // 단어를 개별 가중치와 함께 추가 (랜덤 가중치 또는 특정 규칙 적용)
-              wordList.push([word, Math.floor(Math.random() * 20) + 10]);
-            });
+        if (data.words && data.words.length > 0) {
+          data.words.forEach((wordData) => {
+            wordList.push([wordData.text, wordData.size || wordData.frequency]);
           });
         } else {
           // API 데이터가 없을 때 기본 키워드 사용
