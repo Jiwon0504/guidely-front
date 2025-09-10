@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
+import cloud from "d3-cloud";
 
-export default function WordCloudComponent({ language }) {
-  const canvasRef = useRef(null);
+export default function WordCloudComponent({ language, data = [] }) {
+  const svgRef = useRef(null);
   const [words, setWords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -101,45 +103,47 @@ export default function WordCloudComponent({ language }) {
   useEffect(() => {
     if (!words.length || isLoading) return;
 
-    // wordcloud 라이브러리가 로드되었는지 확인
-    if (typeof window !== 'undefined' && window.WordCloud) {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+    console.log('d3 워드클라우드 렌더링 시도:', { words: words.length, isLoading });
+    
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove(); // 기존 내용 제거
 
-      canvas.width = 500;
-      canvas.height = 400;
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
+    const width = 500;
+    const height = 350;
 
-      // 워드클라우드 생성
-      window.WordCloud(canvas, {
-        list: words,
-        gridSize: 8,
-        weightFactor: 2,
-        fontFamily: "Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
-        color: function() {
-          const colors = ['#ffffff', '#60a5fa', '#a78bfa', '#f472b6', '#fb7185', '#fbbf24', '#34d399', '#22d3ee'];
-          return colors[Math.floor(Math.random() * colors.length)];
-        },
-        backgroundColor: "rgba(0, 0, 0, 0)",
-        rotateRatio: 0.3,
-        rotationSteps: 3,
-        minSize: 12,
-        maxSize: 40,
-        shuffle: false,
-        shape: 'circle'
-      });
-    } else {
-      // wordcloud 라이브러리가 없을 때 폴백
-      console.warn("WordCloud library not loaded, using fallback display");
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'white';
-        ctx.font = '16px Pretendard';
-        ctx.textAlign = 'center';
-        ctx.fillText(language === 'en' ? 'Word Cloud Loading...' : '워드클라우드 로딩 중...', canvas.width/2, canvas.height/2);
-      }
+    svg.attr("width", width).attr("height", height);
+
+    // 색상 스케일
+    const color = d3.scaleOrdinal()
+      .range(['#ffffff', '#60a5fa', '#a78bfa', '#f472b6', '#fb7185', '#fbbf24', '#34d399', '#22d3ee']);
+
+    // 워드클라우드 생성
+    const layout = cloud()
+      .size([width, height])
+      .words(words.map(d => ({ text: d[0], size: d[1] * 10 })))
+      .padding(10)
+      .rotate(() => Math.random() * 40 - 20)
+      .font("Arial")
+      .fontSize(d => d.size)
+      .on("end", draw);
+
+    layout.start();
+
+    function draw(words) {
+      console.log('d3 워드클라우드 그리기 시작, 단어 수:', words.length);
+      
+      const g = svg.append("g")
+        .attr("transform", `translate(${width / 2 + 50},${height / 2})`);
+
+      g.selectAll("text")
+        .data(words)
+        .enter().append("text")
+        .style("font-size", d => `${d.size}px`)
+        .style("font-family", "Arial, sans-serif")
+        .style("fill", (d, i) => color(i))
+        .attr("text-anchor", "middle")
+        .attr("transform", d => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+        .text(d => d.text);
     }
   }, [words, isLoading]);
 
@@ -155,11 +159,14 @@ export default function WordCloudComponent({ language }) {
 
   return (
     <div className="w-full h-full flex items-center justify-center">
-      <canvas 
-        ref={canvasRef} 
+      <svg 
+        ref={svgRef}
         style={{ width: "100%", height: "100%" }}
         className="rounded-lg"
       />
+      <div style={{ position: "absolute", top: "10px", left: "10px", color: "white", fontSize: "12px" }}>
+        D3 Cloud | Words: {words.length}
+      </div>
     </div>
   );
 }

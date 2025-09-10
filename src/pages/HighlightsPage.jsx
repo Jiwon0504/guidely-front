@@ -1,24 +1,80 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { ArrowLeft, TrendingUp, Star } from "lucide-react";
 import WordCloudComponent from "../components/WordCloudComponent";
+import { fetchWordCloudData, formatWordCloudData, fetchTopArtworks } from "../api";
 
 export default function HighlightsPage({ 
   language, 
   onStartChat,
   onBackToHome 
 }) {
+  const [wordCloudData, setWordCloudData] = useState([]);
+  const [topArtworks, setTopArtworks] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Top3 인기 작품 데이터
-  const topArtworks = language === 'en' ? [
+  // 데이터 로드
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // 워드클라우드 데이터와 Top3 작품 데이터를 병렬로 로드
+        const [wordCloudData, artworksData] = await Promise.allSettled([
+          fetchWordCloudData().then(data => formatWordCloudData(data)),
+          fetchTopArtworks()
+        ]);
+        
+        // 워드클라우드 데이터 처리
+        if (wordCloudData.status === 'fulfilled') {
+          setWordCloudData(wordCloudData.value);
+        } else {
+          console.error('워드클라우드 데이터 로드 실패:', wordCloudData.reason);
+        }
+        
+        // Top3 작품 데이터 처리
+        if (artworksData.status === 'fulfilled') {
+          setTopArtworks(artworksData.value);
+        } else {
+          console.error('Top3 작품 데이터 로드 실패:', artworksData.reason);
+          // 에러 시 빈 배열로 설정하여 기본 데이터 사용
+          setTopArtworks([]);
+        }
+      } catch (error) {
+        console.error('데이터 로드 실패:', error);
+        // 에러 시 기본 데이터 사용
+        setWordCloudData([
+          ['전통', 100],
+          ['호랑이', 80],
+          ['까치', 70],
+          ['문양', 60],
+          ['전시', 50],
+          ['예술', 45],
+          ['문화', 40],
+          ['역사', 35],
+          ['아름다움', 30],
+          ['상징', 25],
+        ]);
+        setTopArtworks([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // API에서 받은 데이터가 없을 때 기본 데이터 사용
+  const defaultArtworks = language === 'en' ? [
     {
       id: 1,
       title: 'Gold Crown (Baekje)',
       description: 'A magnificent golden crown from the Baekje period',
       image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
       views: 1250,
-      rating: 4.9
+      rating: 4.9,
+      likeCount: 89
     },
     {
       id: 2,
@@ -26,7 +82,8 @@ export default function HighlightsPage({
       description: 'A serene Buddhist sculpture from the Three Kingdoms period',
       image: 'https://images.unsplash.com/photo-1622947337539-86542cc0cbf4?w=400&h=300&fit=crop',
       views: 1180,
-      rating: 4.8
+      rating: 4.8,
+      likeCount: 76
     },
     {
       id: 3,
@@ -34,7 +91,8 @@ export default function HighlightsPage({
       description: 'Elegant celadon pottery with cloud and crane designs',
       image: 'https://images.unsplash.com/photo-1594138352322-731eff042041?w=400&h=300&fit=crop',
       views: 980,
-      rating: 4.7
+      rating: 4.7,
+      likeCount: 63
     }
   ] : [
     {
@@ -43,7 +101,8 @@ export default function HighlightsPage({
       description: '백제시대의 웅장한 금관',
       image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop',
       views: 1250,
-      rating: 4.9
+      rating: 4.9,
+      likeCount: 89
     },
     {
       id: 2,
@@ -51,7 +110,8 @@ export default function HighlightsPage({
       description: '삼국시대의 평온한 불교 조각상',
       image: 'https://images.unsplash.com/photo-1622947337539-86542cc0cbf4?w=400&h=300&fit=crop',
       views: 1180,
-      rating: 4.8
+      rating: 4.8,
+      likeCount: 76
     },
     {
       id: 3,
@@ -59,9 +119,13 @@ export default function HighlightsPage({
       description: '구름과 학 문양이 새겨진 우아한 청자',
       image: 'https://images.unsplash.com/photo-1594138352322-731eff042041?w=400&h=300&fit=crop',
       views: 980,
-      rating: 4.7
+      rating: 4.7,
+      likeCount: 63
     }
   ];
+
+  // API 데이터가 있으면 사용, 없으면 기본 데이터 사용
+  const displayArtworks = topArtworks.length > 0 ? topArtworks : defaultArtworks;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col items-center justify-center p-4">
@@ -108,7 +172,7 @@ export default function HighlightsPage({
               {language === 'en' ? 'Top 3 Popular Artworks' : 'Top 3 인기 작품'}
             </h2>
             <div className="space-y-4 flex-1">
-              {topArtworks.map((artwork, index) => (
+              {displayArtworks.map((artwork, index) => (
                 <div
                   key={artwork.id}
                   className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300"
@@ -153,9 +217,20 @@ export default function HighlightsPage({
             <h2 className="text-3xl font-bold text-white mb-6 text-center">
               {language === 'en' ? 'Popular Keywords' : '인기 키워드'}
             </h2>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 flex items-center justify-center h-96">
-              <div className="w-96 h-80">
-                <WordCloudComponent language={language} />
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 flex items-center justify-center h-96">
+              <div className="w-full h-full flex items-center justify-center">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-white text-lg">
+                      {language === 'en' ? 'Loading...' : '로딩 중...'}
+                    </div>
+                  </div>
+                ) : (
+                  <WordCloudComponent 
+                    language={language} 
+                    data={wordCloudData}
+                  />
+                )}
               </div>
             </div>
           </div>
