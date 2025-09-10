@@ -33,6 +33,17 @@ export default function App() {
   const [transitionBackground, setTransitionBackground] = useState(null);
   const [selectedFavoriteArt, setSelectedFavoriteArt] = useState(null);
   const [showPhotoCard, setShowPhotoCard] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  
+  // 세션 ID 생성 (채팅 시작 시)
+  useEffect(() => {
+    if (currentPage === 'chat' && !sessionId) {
+      // 성공한 형식 사용: 12345와 같은 5자리 숫자
+      const newSessionId = Math.floor(Math.random() * 90000) + 10000; // 10000-99999 사이의 5자리 정수
+      setSessionId(newSessionId.toString());
+      console.log('생성된 sessionId:', newSessionId);
+    }
+  }, [currentPage, sessionId]);
   
   // 시간 포맷 함수
   const formatTime = (date) => {
@@ -170,7 +181,7 @@ export default function App() {
   if (currentPage === 'summary') {
     return (
       <FavoriteSelectPage
-            language={language}
+        language={language}
         selectedCharacter={selectedCharacter}
         selectedFavoriteArt={selectedFavoriteArt}
         setSelectedFavoriteArt={setSelectedFavoriteArt}
@@ -178,6 +189,7 @@ export default function App() {
         setShowPhotoCard={setShowPhotoCard}
         setCurrentPage={setCurrentPage}
         getRarityColor={getRarityColor}
+        sessionId={sessionId}
       />
     );
   }

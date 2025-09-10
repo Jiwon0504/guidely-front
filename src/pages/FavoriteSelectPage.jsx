@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { PhotoCard } from "../components/PhotoCard";
 import { ArrowLeft, Heart } from "lucide-react";
+import { selectArtwork, getSelectedArtworks, deselectArtwork, downloadPhotoCard, getPhotoCardPreview } from "../api";
 
 export default function FavoriteSelectPage({ 
   language, 
@@ -12,8 +13,87 @@ export default function FavoriteSelectPage({
   showPhotoCard,
   setShowPhotoCard,
   setCurrentPage,
-  getRarityColor
+  getRarityColor,
+  sessionId
 }) {
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [photoCardData, setPhotoCardData] = useState(null);
+  const [photoCardPreview, setPhotoCardPreview] = useState(null);
+
+  // 작품 선택 API 호출 함수
+  const handleArtworkSelect = async (artworkId) => {
+    if (!sessionId) {
+      console.warn('세션 ID가 없습니다.');
+      return;
+    }
+
+    try {
+      setIsSelecting(true);
+      
+      console.log('🔍 API 연결 테스트 시작...');
+      console.log('sessionId:', sessionId, 'artworkId:', artworkId);
+      
+      const result = await selectArtwork(sessionId, artworkId);
+      console.log('✅ 작품 선택이 완료되었습니다.');
+      
+      // 포토카드 데이터 저장
+      if (result && result.downloadUrl) {
+        setPhotoCardData(result);
+        console.log('포토카드 데이터 저장:', result);
+      }
+    } catch (error) {
+      console.warn('⚠️ API 서버 연결 실패 - 로컬에서만 작동합니다:', error.message);
+      console.log('📝 작품 선택 정보 (로컬):', { sessionId, artworkId });
+    } finally {
+      setIsSelecting(false);
+    }
+  };
+
+  // 포토카드 다운로드 함수
+  const handleDownload = async () => {
+    if (!photoCardData || !photoCardData.downloadUrl) {
+      console.warn('다운로드할 포토카드가 없습니다.');
+      return;
+    }
+
+    try {
+      setIsDownloading(true);
+      console.log('포토카드 다운로드 시작...');
+      
+      const filename = `photocard_${photoCardData.id}_${Date.now()}.png`;
+      await downloadPhotoCard(photoCardData.downloadUrl, filename);
+      
+      console.log('✅ 포토카드 다운로드 완료!');
+    } catch (error) {
+      console.error('포토카드 다운로드 실패:', error);
+      alert('다운로드에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // 포토카드 미리보기 로드 함수
+  const handlePreview = async () => {
+    if (!photoCardData || !photoCardData.downloadUrl) {
+      console.warn('미리보기할 포토카드가 없습니다.');
+      return;
+    }
+
+    try {
+      console.log('포토카드 미리보기 로드 시작...');
+      
+      const previewUrl = await getPhotoCardPreview(photoCardData.downloadUrl);
+      setPhotoCardPreview(previewUrl);
+      
+      console.log('✅ 포토카드 미리보기 로드 완료!');
+    } catch (error) {
+      console.error('포토카드 미리보기 로드 실패:', error);
+      alert('미리보기 로드에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
+
+
   const visitPhotos = [
     {
       id: 1,
@@ -120,8 +200,17 @@ export default function FavoriteSelectPage({
                   
                   {/* 하트 버튼 */}
                   <button
-                    onClick={() => setSelectedFavoriteArt(selectedFavoriteArt === photo.id ? null : photo.id)}
-                    className="absolute top-3 right-3 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-all duration-200 transform hover:scale-110"
+                    onClick={async () => {
+                      const newSelection = selectedFavoriteArt === photo.id ? null : photo.id;
+                      setSelectedFavoriteArt(newSelection);
+                      
+                      // 작품이 선택된 경우에만 API 호출
+                      if (newSelection) {
+                        await handleArtworkSelect(photo.id);
+                      }
+                    }}
+                    disabled={isSelecting}
+                    className="absolute top-3 right-3 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-all duration-200 transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Heart 
                       className={`w-5 h-5 transition-all duration-200 ${
@@ -149,6 +238,41 @@ export default function FavoriteSelectPage({
                   {visitPhotos.find(photo => photo.id === selectedFavoriteArt)?.title}
                 </span>
               </p>
+              {isSelecting && (
+                <p className="text-yellow-400 text-xs mt-2">
+                  {language === 'en' ? 'Saving selection...' : '선택사항을 저장하는 중...'}
+                </p>
+              )}
+              
+              {/* 포토카드 미리보기 섹션 */}
+              {photoCardData && photoCardData.downloadUrl && (
+                <div className="mt-4 p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <p className="text-white/90 text-sm mb-3">
+                    {language === 'en' ? 'Photo Card Ready!' : '포토카드가 준비되었습니다!'}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {/* 미리보기 버튼 */}
+                    <button
+                      onClick={handlePreview}
+                      className="px-4 py-2 bg-blue-500/80 hover:bg-blue-500 text-white text-sm rounded-lg transition-all duration-200 hover:scale-105"
+                    >
+                      {language === 'en' ? 'Preview' : '미리보기'}
+                    </button>
+                  </div>
+                  
+                  {/* 미리보기 이미지 */}
+                  {photoCardPreview && (
+                    <div className="mt-3">
+                      <img 
+                        src={photoCardPreview} 
+                        alt="Photo Card Preview" 
+                        className="max-w-xs mx-auto rounded-lg shadow-lg"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -167,9 +291,19 @@ export default function FavoriteSelectPage({
               {language === 'en' ? 'Explore with Another Guide' : '다른 가이드와 탐험하기'}
             </Button>
             <Button
-              onClick={() => {
+              onClick={async () => {
                 if (selectedFavoriteArt) {
-                  setShowPhotoCard(true);
+                  if (photoCardData && photoCardData.downloadUrl) {
+                    // 포토카드가 이미 생성된 경우 다운로드
+                    try {
+                      await handleDownload();
+                    } catch (error) {
+                      console.error('다운로드 실패:', error);
+                    }
+                  } else {
+                    // 포토카드가 없는 경우 모달 표시
+                    setShowPhotoCard(true);
+                  }
                 } else {
                   alert(language === 'en' 
                     ? 'Please select your favorite artwork first!' 
@@ -178,10 +312,15 @@ export default function FavoriteSelectPage({
                 }
               }}
               size="lg"
-              disabled={!selectedFavoriteArt}
+              disabled={!selectedFavoriteArt || isDownloading}
               className="px-8 py-4 bg-white/20 border-2 border-white/60 text-white hover:bg-white/30 hover:border-white/80 backdrop-blur-sm rounded-xl shadow-lg transform transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {language === 'en' ? 'Print Photo Card' : '포토카드 인쇄하기'}
+              {isDownloading 
+                ? (language === 'en' ? 'Downloading...' : '다운로드 중...')
+                : (photoCardData && photoCardData.downloadUrl)
+                  ? (language === 'en' ? 'Download Photo Card' : '포토카드 다운로드')
+                  : (language === 'en' ? 'Print Photo Card' : '포토카드 인쇄하기')
+              }
             </Button>
           </div>
           

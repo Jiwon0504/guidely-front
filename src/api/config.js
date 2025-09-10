@@ -4,7 +4,7 @@ const API_CONFIG = {
   CHAT_ORCHESTRA: import.meta.env.VITE_CHAT_ORCHESTRA_URL || 'https://your-chat-orchestra.azurewebsites.net',
   
   // 2. Photocard-Maker Service (포토카드 생성)
-  PHOTOCARD_MAKER: import.meta.env.VITE_PHOTOCARD_MAKER_URL || 'https://your-photocard-maker.azurewebsites.net',
+  PHOTOCARD_MAKER: import.meta.env.VITE_PHOTOCARD_MAKER_URL || 'https://guidely-phtotcardmaker-g9hqaacaadcwdhfn.koreacentral-01.azurewebsites.net',
   
   // 3. RAG Service (검색 및 답변)
   RAG: import.meta.env.VITE_RAG_URL || 'https://your-rag.azurewebsites.net',
