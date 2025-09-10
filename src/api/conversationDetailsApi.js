@@ -1,36 +1,45 @@
-// src/api/conversationsApi.js
-// Conversations API client for starting a new conversation session
+// src/api/conversationDetailsApi.js
+// Conversation details API client for fetching a conversation with messages
+
+import { API_BASE_URL } from "./conversationsApi";
 
 /**
- * Resolve backend base URL from Vite env or fallback to provided Azure host.
- * Ensures there is no trailing slash.
- */
-const API_BASE_URL = (import.meta?.env?.VITE_BACKEND_URL || "https://yerak-chat-cyfze4hnhbeaawc8.koreacentral-01.azurewebsites.net").replace(/\/$/, "");
-
-/**
- * POST /api/conversations
- * Starts a new conversation session.
+ * GET /api/conversations/{conversationId}
+ * Retrieves conversation details with messages (paginated)
  *
+ * @param {number|string} conversationId - Conversation/session identifier
  * @param {Object} [options]
+ * @param {number} [options.page=0] - Page number (0-based)
+ * @param {number} [options.size=20] - Page size
  * @param {Object} [options.headers] - Additional headers to merge
  * @param {number} [options.timeoutMs=15000] - Request timeout in milliseconds
- * @returns {Promise<{ success: boolean; data?: { sessionId: number; status: string; startedAt: string }; error?: { code?: string; message?: string; details?: any }; timestamp?: string }>} Parsed API response
+ * @returns {Promise<{ success: boolean; data?: { sessionId: number; status: string; messages: Array<{ messageId: number; role: string; content: string; createdAt: string }>; total: number }; error?: { code?: string; message?: string; details?: any }; timestamp?: string }>} Parsed API response
  */
-export async function startConversation(options = {}) {
-  const { headers = {}, timeoutMs = 15000 } = options;
+export async function getConversation(conversationId, options = {}) {
+  const { page = 0, size = 20, headers = {}, timeoutMs = 15000 } = options;
+
+  if (conversationId == null || conversationId === "") {
+    return {
+      success: false,
+      error: { code: "INVALID_ARGUMENT", message: "conversationId is required" },
+      timestamp: new Date().toISOString(),
+    };
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/conversations`, {
-      method: "POST",
+    const url = new URL(`${API_BASE_URL}/api/conversations/${encodeURIComponent(conversationId)}`);
+    url.searchParams.set("page", String(page));
+    url.searchParams.set("size", String(size));
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
         ...headers,
       },
-      body: JSON.stringify({}),
       signal: controller.signal,
     });
 
@@ -54,7 +63,6 @@ export async function startConversation(options = {}) {
       throw Object.assign(new Error(message), { response, payload: error });
     }
 
-    // Return parsed JSON (swagger-style shape expected)
     return payload;
   } catch (err) {
     if (err?.name === "AbortError") {
@@ -62,7 +70,7 @@ export async function startConversation(options = {}) {
         success: false,
         error: {
           code: "TIMEOUT",
-          message: `startConversation timed out after ${timeoutMs}ms`,
+          message: `getConversation timed out after ${timeoutMs}ms`,
         },
         timestamp: new Date().toISOString(),
       };
@@ -81,7 +89,5 @@ export async function startConversation(options = {}) {
     clearTimeout(timeout);
   }
 }
-
-export { API_BASE_URL };
 
 
