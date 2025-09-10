@@ -1,36 +1,42 @@
-// src/api/conversationsApi.js
-// Conversations API client for starting a new conversation session
+// src/api/conversationEndApi.js
+// Conversation end API client for ending a conversation session
+
+import { API_BASE_URL } from "./conversationsApi";
 
 /**
- * Resolve backend base URL from Vite env or fallback to provided Azure host.
- * Ensures there is no trailing slash.
- */
-const API_BASE_URL = (import.meta?.env?.VITE_BACKEND_URL || "https://yerak-chat-cyfze4hnhbeaawc8.koreacentral-01.azurewebsites.net").replace(/\/$/, "");
-
-/**
- * POST /api/conversations
- * Starts a new conversation session.
+ * PUT /api/conversations/{conversationId}/end
+ * Ends the conversation session
  *
+ * @param {number|string} conversationId - Conversation/session identifier
+ * @param {{ reason?: string }} [body] - Optional payload with reason
  * @param {Object} [options]
  * @param {Object} [options.headers] - Additional headers to merge
  * @param {number} [options.timeoutMs=15000] - Request timeout in milliseconds
- * @returns {Promise<{ success: boolean; data?: { sessionId: number; status: string; startedAt: string }; error?: { code?: string; message?: string; details?: any }; timestamp?: string }>} Parsed API response
+ * @returns {Promise<{ success: boolean; data?: { sessionId: number; status: string; endedAt: string }; error?: { code?: string; message?: string; details?: any }; timestamp?: string }>} Parsed API response
  */
-export async function startConversation(options = {}) {
+export async function endConversation(conversationId, body = {}, options = {}) {
   const { headers = {}, timeoutMs = 15000 } = options;
+
+  if (conversationId == null || conversationId === "") {
+    return {
+      success: false,
+      error: { code: "INVALID_ARGUMENT", message: "conversationId is required" },
+      timestamp: new Date().toISOString(),
+    };
+  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/conversations`, {
-      method: "POST",
+    const response = await fetch(`${API_BASE_URL}/api/conversations/${encodeURIComponent(conversationId)}/end`, {
+      method: "PUT",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
         ...headers,
       },
-      body: JSON.stringify({}),
+      body: JSON.stringify(body || {}),
       signal: controller.signal,
     });
 
@@ -54,7 +60,6 @@ export async function startConversation(options = {}) {
       throw Object.assign(new Error(message), { response, payload: error });
     }
 
-    // Return parsed JSON (swagger-style shape expected)
     return payload;
   } catch (err) {
     if (err?.name === "AbortError") {
@@ -62,7 +67,7 @@ export async function startConversation(options = {}) {
         success: false,
         error: {
           code: "TIMEOUT",
-          message: `startConversation timed out after ${timeoutMs}ms`,
+          message: `endConversation timed out after ${timeoutMs}ms`,
         },
         timestamp: new Date().toISOString(),
       };
@@ -81,7 +86,5 @@ export async function startConversation(options = {}) {
     clearTimeout(timeout);
   }
 }
-
-export { API_BASE_URL };
 
 
