@@ -5,23 +5,19 @@ export default function Recorder({ onTranscribedText }) {
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
 
-  // 🔑 Azure Speech API 정보
-  // ⚠️ 보안 경고: 프로덕션에서는 API key를 클라이언트에 노출하지 마세요!
-  // 실제 배포 시에는 서버 사이드에서 음성 인식을 처리하거나 토큰 기반 인증을 사용하세요
-  const AZURE_KEY = import.meta.env.DEV ? import.meta.env.VITE_AZURE_SPEECH_KEY : null;
+  const AZURE_KEY = import.meta.env.VITE_AZURE_SPEECH_KEY;
   const REGION = import.meta.env.VITE_AZURE_REGION || "koreacentral";
-
-  // 프로덕션에서는 API key 없이 기능 비활성화
-  if (!AZURE_KEY && import.meta.env.PROD) {
-    console.warn('음성 인식 기능은 개발 환경에서만 사용 가능합니다.');
-  }
 
   // 🎙️ 녹음 시작
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorderRef.current = new MediaRecorder(stream);
 
-    audioChunks.current = []; // 초기화
+    // ✅ 크롬이 지원하는 mimeType (webm/opus)
+    mediaRecorderRef.current = new MediaRecorder(stream, {
+      mimeType: "audio/webm;codecs=opus",
+    });
+
+    audioChunks.current = [];
 
     mediaRecorderRef.current.ondataavailable = (event) => {
       if (event.data.size > 0) {
@@ -36,67 +32,109 @@ export default function Recorder({ onTranscribedText }) {
   // ⏹ 녹음 중지
   const stopRecording = () => {
     mediaRecorderRef.current.stop();
-    mediaRecorderRef.current.onstop = () => {
-      const audioBlob = new Blob(audioChunks.current, { type: "audio/wav" });
+    mediaRecorderRef.current.onstop = async () => {
+      const webmBlob = new Blob(audioChunks.current, { type: "audio/webm" });
       audioChunks.current = [];
-      sendAudioToAzure(audioBlob);
+
+      // ✅ WebM → WAV 변환 후 Azure로 전송
+      const wavBlob = await convertToWav(webmBlob);
+      sendAudioToAzure(wavBlob);
     };
     setRecording(false);
   };
-  // 📡 Azure API 호출
-    async function sendAudioToAzure(audioBlob) {
-        // 프로덕션 환경에서는 API key가 없으므로 기능 비활성화
-        if (!AZURE_KEY) {
-            console.warn('음성 인식 기능을 사용할 수 없습니다. 개발 환경에서만 사용 가능합니다.');
-            onTranscribedText('음성 인식은 개발 환경에서만 사용 가능합니다.');
-            return;
-        }
 
-        try {
-        const arrayBuffer = await audioBlob.arrayBuffer();
-    
-        const response = await fetch(
-            `https://${REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=ko-KR`,
-            {
-            method: "POST",
-            headers: {
-                "Ocp-Apim-Subscription-Key": AZURE_KEY,
-                "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
-            },
-            body: arrayBuffer,
-            }
-        );
-    
-        const result = await response.json();
-        console.log("🎙️ Azure 인식 결과 원본:", result);
-    
-        // Azure의 JSON 구조에 따라 텍스트 꺼내기
-        const text = result.DisplayText || result.Text || "";
-        console.log("📌 최종 인식된 텍스트:", text);
-    
-        if (onTranscribedText) {
-            console.log("📡 App.jsx로 전달:", text);
-            onTranscribedText(text);
-        }
-        } catch (error) {
-        console.error("❌ Azure STT 오류:", error);
-        }
+  // 📡 Azure API 호출
+  async function sendAudioToAzure(audioBlob) {
+    if (!AZURE_KEY) {
+      console.warn("❌ Azure Key 없음");
+      return;
     }
-  
+
+    try {
+      const arrayBuffer = await audioBlob.arrayBuffer();
+
+      const response = await fetch(
+        `https://${REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=ko-KR`,
+        {
+          method: "POST",
+          headers: {
+            "Ocp-Apim-Subscription-Key": AZURE_KEY,
+            "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
+          },
+          body: arrayBuffer,
+        }
+      );
+
+      const result = await response.json();
+      console.log("🎙️ Azure 인식 결과:", result);
+
+      const text = result.DisplayText || "";
+      onTranscribedText?.(text);
+    } catch (error) {
+      console.error("❌ Azure STT 오류:", error);
+    }
+  }
+
+  // 🔄 WebM → WAV 변환 함수
+  async function convertToWav(blob) {
+    const audioCtx = new AudioContext({ sampleRate: 16000 }); // 16kHz 고정
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+    const wavBuffer = encodeWAV(audioBuffer);
+    return new Blob([wavBuffer], { type: "audio/wav" });
+  }
+
+  // PCM WAV 인코더
+  function encodeWAV(audioBuffer) {
+    const channelData = audioBuffer.getChannelData(0); // 모노만 사용
+    const buffer = new ArrayBuffer(44 + channelData.length * 2);
+    const view = new DataView(buffer);
+
+    // WAV 헤더
+    writeString(view, 0, "RIFF");
+    view.setUint32(4, 36 + channelData.length * 2, true);
+    writeString(view, 8, "WAVE");
+    writeString(view, 12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // 모노
+    view.setUint32(24, 16000, true); // 샘플링 레이트 16kHz
+    view.setUint32(28, 16000 * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true); // 16비트
+    writeString(view, 36, "data");
+    view.setUint32(40, channelData.length * 2, true);
+
+    // PCM 데이터
+    let offset = 44;
+    for (let i = 0; i < channelData.length; i++, offset += 2) {
+      const s = Math.max(-1, Math.min(1, channelData[i]));
+      view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+
+    return buffer;
+  }
+
+  function writeString(view, offset, string) {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  }
 
   return (
     <div>
       {!recording ? (
-        <button 
+        <button
           onClick={startRecording}
-          className="p-3 bg-black/40 backdrop-blur-sm border border-gray-500/50 text-white hover:bg-black/60 transition-all duration-200 rounded-md"
+          className="p-3 bg-gray-700 text-white rounded-md"
         >
           🎤
         </button>
       ) : (
-        <button 
+        <button
           onClick={stopRecording}
-          className="p-3 bg-red-500/80 backdrop-blur-sm border border-red-400/50 text-white hover:bg-red-600/80 transition-all duration-200 rounded-md"
+          className="p-3 bg-red-600 text-white rounded-md"
         >
           ⏹
         </button>
