@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import LandingPage from "./pages/LandingPage";
+import HighlightsPage from "./pages/HighlightsPage";
 import ChatPage from "./pages/ChatPage";
 import CharacterSelectPage from "./pages/CharacterSelectPage";
 import FavoriteSelectPage from "./pages/FavoriteSelectPage";
@@ -64,6 +65,10 @@ export default function App() {
   }, [currentPage, selectedCharacter, language, messages.length]);
 
   const handleStartGuide = () => {
+    setCurrentPage('highlights');
+  };
+  
+  const handleStartChat = () => {
     setCurrentPage('character-select');
   };
   const handleCharacterSelect = (character) => {
@@ -116,6 +121,17 @@ export default function App() {
         language={language} 
         onStartGuide={handleStartGuide}
         onLanguageChange={setLanguage}
+      />
+    );
+  }
+
+  // 하이라이트 페이지
+  if (currentPage === 'highlights') {
+    return (
+      <HighlightsPage
+        language={language}
+        onStartChat={handleStartChat}
+        onBackToHome={() => setCurrentPage('home')}
       />
     );
   }

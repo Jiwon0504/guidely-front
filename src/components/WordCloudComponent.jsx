@@ -1,0 +1,165 @@
+import React, { useEffect, useRef, useState } from "react";
+
+export default function WordCloudComponent({ language }) {
+  const canvasRef = useRef(null);
+  const [words, setWords] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSentences = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL}/chat/all_sentences`
+        );
+        if (!response.ok) throw new Error("데이터를 불러오는 데 실패했습니다.");
+
+        const data = await response.json();
+        console.log("받아온 데이터:", data);
+
+        // 문장을 단어로 나누고 단어 리스트 생성
+        const wordList = [];
+        if (data.sentences && data.sentences.length > 0) {
+          data.sentences.forEach((sentence) => {
+            const words = sentence.summary.split(" ");
+            words.forEach((word) => {
+              // 단어를 개별 가중치와 함께 추가 (랜덤 가중치 또는 특정 규칙 적용)
+              wordList.push([word, Math.floor(Math.random() * 20) + 10]);
+            });
+          });
+        } else {
+          // API 데이터가 없을 때 기본 키워드 사용
+          const defaultWords = language === 'en' ? [
+            ['Art', 25],
+            ['History', 22],
+            ['Culture', 20],
+            ['Beauty', 18],
+            ['Tradition', 16],
+            ['Museum', 15],
+            ['Exhibition', 14],
+            ['Korean', 13],
+            ['Ancient', 12],
+            ['Masterpiece', 11],
+            ['Heritage', 10],
+            ['Aesthetic', 9],
+            ['Timeless', 8],
+            ['Inspiration', 7]
+          ] : [
+            ['예술', 25],
+            ['역사', 22],
+            ['문화', 20],
+            ['아름다움', 18],
+            ['전통', 16],
+            ['박물관', 15],
+            ['전시', 14],
+            ['한국', 13],
+            ['고대', 12],
+            ['명작', 11],
+            ['유산', 10],
+            ['미학', 9],
+            ['영원', 8],
+            ['영감', 7]
+          ];
+          wordList.push(...defaultWords);
+        }
+        setWords(wordList);
+      } catch (error) {
+        console.error("API 요청 중 오류:", error);
+        // 에러 시 기본 키워드 사용
+        const defaultWords = language === 'en' ? [
+          ['Art', 25],
+          ['History', 22],
+          ['Culture', 20],
+          ['Beauty', 18],
+          ['Tradition', 16],
+          ['Museum', 15],
+          ['Exhibition', 14],
+          ['Korean', 13],
+          ['Ancient', 12],
+          ['Masterpiece', 11]
+        ] : [
+          ['예술', 25],
+          ['역사', 22],
+          ['문화', 20],
+          ['아름다움', 18],
+          ['전통', 16],
+          ['박물관', 15],
+          ['전시', 14],
+          ['한국', 13],
+          ['고대', 12],
+          ['명작', 11]
+        ];
+        setWords(defaultWords);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSentences();
+  }, [language]);
+
+  useEffect(() => {
+    if (!words.length || isLoading) return;
+
+    // wordcloud 라이브러리가 로드되었는지 확인
+    if (typeof window !== 'undefined' && window.WordCloud) {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      canvas.width = 500;
+      canvas.height = 400;
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+
+      // 워드클라우드 생성
+      window.WordCloud(canvas, {
+        list: words,
+        gridSize: 8,
+        weightFactor: 2,
+        fontFamily: "Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+        color: function() {
+          const colors = ['#ffffff', '#60a5fa', '#a78bfa', '#f472b6', '#fb7185', '#fbbf24', '#34d399', '#22d3ee'];
+          return colors[Math.floor(Math.random() * colors.length)];
+        },
+        backgroundColor: "rgba(0, 0, 0, 0)",
+        rotateRatio: 0.3,
+        rotationSteps: 3,
+        minSize: 12,
+        maxSize: 40,
+        shuffle: false,
+        shape: 'circle'
+      });
+    } else {
+      // wordcloud 라이브러리가 없을 때 폴백
+      console.warn("WordCloud library not loaded, using fallback display");
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Pretendard';
+        ctx.textAlign = 'center';
+        ctx.fillText(language === 'en' ? 'Word Cloud Loading...' : '워드클라우드 로딩 중...', canvas.width/2, canvas.height/2);
+      }
+    }
+  }, [words, isLoading]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-80">
+        <div className="text-white text-lg">
+          {language === 'en' ? 'Loading word cloud...' : '워드클라우드 로딩 중...'}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <canvas 
+        ref={canvasRef} 
+        style={{ width: "100%", height: "100%" }}
+        className="rounded-lg"
+      />
+    </div>
+  );
+}
