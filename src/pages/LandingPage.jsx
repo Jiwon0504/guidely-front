@@ -16,8 +16,8 @@ export default function LandingPage({ language, onStartGuide, onLanguageChange }
     },
     en: {
       title: "National Museum of Korea · AI Curator Guidely",
-      subtitle: "Explore with your AI Curator",
-      button: "Start Guidely"
+      subtitle: "Explore Korean Heritage with your AI Curator",
+      button: "Begin your Journey with Guidely"
     }
   };
 

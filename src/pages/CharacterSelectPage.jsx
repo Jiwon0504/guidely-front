@@ -54,7 +54,7 @@ export default function CharacterSelectPage({
         
         {/* 캐릭터 그리드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mb-12 w-full max-w-7xl mx-auto px-6">
-          {characters.map((character) => (
+          {characters.map((character, index) => (
             <div
               key={character.id}
               className={`
@@ -83,7 +83,7 @@ export default function CharacterSelectPage({
                 {/* 레벨 배지 */}
                 <div className="absolute top-4 left-4 z-10">
                   <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${getRarityColor(character.rarity)} flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
-                    {character.level}
+                    {index + 1}
                   </div>
                 </div>
                 
@@ -138,7 +138,7 @@ export default function CharacterSelectPage({
                           )}
                         </>
                       )}
-                      <p className="text-white/90 text-sm leading-relaxed font-medium line-clamp-3">
+                      <p className={`text-white/90 text-sm leading-relaxed font-medium ${language === 'en' ? 'line-clamp-6' : 'line-clamp-3'}`}>
                         {language === 'en' ? character.descriptionEn : character.description}
                       </p>
                     </div>
