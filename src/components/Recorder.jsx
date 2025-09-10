@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 
-export default function Recorder({ onTranscribedText }) {
+export default function Recorder({ onTranscribedText, language }) {
   const [recording, setRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
@@ -54,7 +54,7 @@ export default function Recorder({ onTranscribedText }) {
       const arrayBuffer = await audioBlob.arrayBuffer();
 
       const response = await fetch(
-        `https://${REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=ko-KR`,
+        `https://${REGION}.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=${language === 'en' ? 'en-US' : 'ko-KR'}`,
         {
           method: "POST",
           headers: {

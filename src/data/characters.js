@@ -12,44 +12,60 @@ export const characters = [
     id: 1,
     name: '루미',
     nameEn: 'Rumi',
-    level: 1,
-    description: '차분하고 책임감 있는 리더, 깊이 있는 설명을 해줍니다.',
-    descriptionEn: 'A calm and responsible leader who offers insightful explanations.',
     rarity: 'legendary',
+    description: '차분하고 책임감 있는 리더...',
+    descriptionEn: 'A calm and responsible leader...',
     image: rumiImage,
-    backgroundImage: rumiBg
+    backgroundImage: rumiBg,
+
+    voices: {
+      ko: "ko-KR-SunHiNeural",   // 루미 한국어
+      en: "en-US-AvaMultilingualNeural" // 루미 영어
+    }
   },
   {
     id: 2,
     name: '미라',
     nameEn: 'Mira',
-    level: 2,
-    description: '카리스마 있고 열정적인 감각파 큐레이터, 트렌디한 가이드를 제공합니다.',
-    descriptionEn: 'A charismatic and passionate curator who delivers trendy guidance.',
     rarity: 'epic',
+    description: '카리스마 있고 열정적인...',
+    descriptionEn: 'A charismatic and passionate...',
     image: miraImage,
-    backgroundImage: miraBg
+    backgroundImage: miraBg,
+
+    voices: {
+      ko: "ko-KR-SoonBokNeural",   // 미라 한국어
+      en: "en-US-SerenaMultilingualNeural" // 미라 영어
+    }
   },
   {
     id: 3,
     name: '조이',
     nameEn: 'Zoey',
-    level: 3,
-    description: '유쾌하고 발랄한 막내, 쉽고 재미있게 풀어줍니다.',
-    descriptionEn: 'A cheerful and lively youngest member who makes things fun and easy to understand.',
     rarity: 'rare',
+    description: '유쾌하고 발랄한 막내...',
+    descriptionEn: 'A cheerful and lively youngest...',
     image: zoeyImage,
-    backgroundImage: zoeyBg
+    backgroundImage: zoeyBg,
+
+    voices: {
+      ko: "ko-KR-SeoHyeonNeural",   // 조이 한국어
+      en: "en-US-PhoebeMultilingualNeural" // 조이 영어
+    }
   },
   {
     id: 4,
     name: '진우',
     nameEn: 'Jinu',
-    level: 4,
-    description: '카리스마와 장난스러움이 공존, 색다른 시각을 제시합니다.',
-    descriptionEn: 'A mix of charisma and playfulness, offering a fresh and unique perspective.',
     rarity: 'common',
+    description: '카리스마와 장난스러움이...',
+    descriptionEn: 'A mix of charisma and playfulness...',
     image: jinuImage,
-    backgroundImage: jinuBg
+    backgroundImage: jinuBg,
+
+    voices: {
+      ko: "ko-KR-HyunsuMultilingualNeural",   // 지누 한국어
+      en: "en-US-AndrewMultilingualNeural"    // 지누 영어
+    }
   }
 ];

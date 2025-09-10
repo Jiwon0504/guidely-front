@@ -1,3 +1,4 @@
+// src/pages/ChatPage.jsx
 import React from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -98,30 +99,37 @@ export default function ChatPage({
                 </div>
               </div>
 
-              {/* 가이드 메시지 아래에만 액션 버튼들 표시 */}
-              {message.type === 'guide' && (
-                <div className="flex justify-start">
-                  <div className="flex gap-2 ml-2">
-                    <Button
-                      onClick={() => handleLearnMore(message.content)}
-                      size="sm"
-                      variant="outline"
-                      className="text-xs bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
-                    >
-                      {language === 'en'
-                        ? 'Learn more'
-                        : '이 주제에 대해 더 알려줘!'}
-                    </Button>
-                    <Button
-                      onClick={handleEndChat}
-                      size="sm"
-                      variant="default"
-                      className="text-xs bg-red-600 text-white hover:bg-red-700 border-none"
-                    >
-                      {language === 'en' ? 'End chat' : '대화 종료하기'}
-                    </Button>
+              {/* 🗣️ 가이드 메시지일 때만 자동 음성 출력 + 액션 버튼 */}
+              {message.type === "guide" && (
+                <>
+                  <TextToSpeech 
+                    text={message.content}
+                    voiceName={selectedCharacter?.voices?.[language]}
+                    autoPlay
+                  />
+                  <div className="flex justify-start">
+                    <div className="flex gap-2 ml-2">
+                      <Button
+                        onClick={() => handleLearnMore(message.content)}
+                        size="sm"
+                        variant="outline"
+                        className="text-xs bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
+                      >
+                        {language === 'en'
+                          ? 'Learn more'
+                          : '이 주제에 대해 더 알려줘!'}
+                      </Button>
+                      <Button
+                        onClick={handleEndChat}
+                        size="sm"
+                        variant="default"
+                        className="text-xs bg-red-600 text-white hover:bg-red-700 border-none"
+                      >
+                        {language === 'en' ? 'End chat' : '대화 종료하기'}
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
           ))}
@@ -164,13 +172,12 @@ export default function ChatPage({
                 language === 'en' ? 'Type a message...' : '메시지를 입력하세요...'
               }
               className="flex-1 bg-white/90 backdrop-blur-sm border-gray-500/50 text-black placeholder-gray-500"
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputMessage)}
             />
-            {/* 🎤 Recorder 컴포넌트 */}
-            <TextToSpeech text={inputMessage} />
-            <Recorder onTranscribedText={(text) => setInputMessage(text)} />
+            {/* 🎤 Recorder + Send 버튼 */}
+            <Recorder onTranscribedText={(text) => setInputMessage(text)} language={language} />
             <Button
-              onClick={handleSendMessage}
+              onClick={() => handleSendMessage(inputMessage)}
               disabled={!inputMessage.trim()}
               className={`bg-gradient-to-r ${
                 selectedCharacter
