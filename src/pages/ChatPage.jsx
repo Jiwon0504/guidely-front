@@ -19,15 +19,6 @@ export default function ChatPage({
   handleRecommendedQuery,
   getRarityColor
 }) {
-  const recommendedQueries = language === 'en' ? [
-    "The Top 5 most-viewed artworks",
-    "2F facilities location guide", 
-    "Tell me about \"A Room of Quiet Contemplation\""
-  ] : [
-    "지금 가장 많이 찾아본 작품 Top 5",
-    "2F 편의시설 위치 안내",
-    "사유의 방 작품 설명"
-  ];
 
   return (
     <div className="min-h-screen w-full relative flex flex-col bg-black" style={{height: '100vh'}}>
@@ -138,30 +129,6 @@ export default function ChatPage({
 
       {/* 하단 고정 영역 */}
       <div className="relative z-10 bg-black/30 backdrop-blur-sm border-t border-gray-700/30 flex-shrink-0">
-        {/* 추천 검색어 버블 */}
-        <div className="px-4 pt-4">
-          <div className="mx-auto">
-            <p className="text-white/80 text-sm mb-3">
-              {language === 'en' ? 'Try asking...' : '이렇게 질문해보세요!'}
-            </p>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {recommendedQueries.map((query, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleRecommendedQuery(query)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 bg-gradient-to-r ${
-                    selectedCharacter
-                      ? getRarityColor(selectedCharacter.rarity)
-                      : 'from-gray-500 to-gray-600'
-                  } bg-opacity-20 border border-current text-white hover:bg-opacity-30 backdrop-blur-sm`}
-                >
-                  {query}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* 입력 영역 */}
         <div className="px-4 pb-4">
           <div className="flex gap-2">
