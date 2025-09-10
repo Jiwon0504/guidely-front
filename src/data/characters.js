@@ -13,8 +13,8 @@ export const characters = [
     name: '루미',
     nameEn: 'Rumi',
     rarity: 'legendary',
-    description: '차분하고 책임감 있는 리더...',
-    descriptionEn: 'A calm and responsible leader...',
+    description: '차분하고 책임감 있는 리더, 통찰력 있는 해석을 제공합니다.',
+    descriptionEn: 'A calm and responsible leader who provides insightful interpretations.',
     image: rumiImage,
     backgroundImage: rumiBg,
 
@@ -28,8 +28,8 @@ export const characters = [
     name: '미라',
     nameEn: 'Mira',
     rarity: 'epic',
-    description: '카리스마 있고 열정적인...',
-    descriptionEn: 'A charismatic and passionate...',
+    description: '카리스마 있고 열정적인 감각파 큐레이터, 트렌디한 시각을 전해줍니다.',
+    descriptionEn: 'A charismatic and passionate curator who brings a trendy perspective.',
     image: miraImage,
     backgroundImage: miraBg,
 
@@ -43,8 +43,8 @@ export const characters = [
     name: '조이',
     nameEn: 'Zoey',
     rarity: 'rare',
-    description: '유쾌하고 발랄한 막내...',
-    descriptionEn: 'A cheerful and lively youngest...',
+    description: '유쾌하고 발랄한 막내, 쉽고 재미있게 설명해줍니다.',
+    descriptionEn: 'A cheerful and lively maknae who explains things in a fun and easy way.',
     image: zoeyImage,
     backgroundImage: zoeyBg,
 
@@ -58,8 +58,8 @@ export const characters = [
     name: '진우',
     nameEn: 'Jinu',
     rarity: 'common',
-    description: '카리스마와 장난스러움이...',
-    descriptionEn: 'A mix of charisma and playfulness...',
+    description: '재치 있고 유머러스한 동행자, 색다른 감상을 도와줍니다.',
+    descriptionEn: 'A witty and humorous companion who helps you enjoy a different perspective.',
     image: jinuImage,
     backgroundImage: jinuBg,
 
