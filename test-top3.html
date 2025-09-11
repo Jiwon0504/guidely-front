@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top3 작품 API 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Top3 작품 API CORS 테스트</h1>
+    
+    <div class="test-section">
+        <h2>1. Top3 작품 ID 조회 테스트</h2>
+        <button onclick="testTop3API()">Top3 ID 가져오기 테스트</button>
+        <div id="top3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. 작품 상세 정보 조회 테스트</h2>
+        <button onclick="testArtworkDetail()">작품 상세 정보 테스트 (ID: 1)</button>
+        <div id="artwork-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 전체 플로우 테스트</h2>
+        <button onclick="testFullFlow()">Top3 → 상세정보 전체 플로우</button>
+        <div id="flow-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. 좋아요 기능 테스트</h2>
+        <button onclick="testLikeAPI()">좋아요 테스트 (ID: 1)</button>
+        <div id="like-result"></div>
+    </div>
+
+    <script>
+        const ARTWORK_STATS_URL = 'https://guidely-artwork-statistic-fah0b3dte6hvech2.koreacentral-01.azurewebsites.net';
+        const EXHIBITION_URL = 'https://your-exhibition-url.com'; // 실제 URL로 변경 필요
+
+        function logResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            const className = isError ? 'error' : 'success';
+            element.innerHTML = `<div class="${className}"><pre>${message}</pre></div>`;
+        }
+
+        async function testTop3API() {
+            try {
+                console.log('🔍 Top3 API 테스트 시작...');
+                
+                const response = await fetch(`${ARTWORK_STATS_URL}/api/stats/top3`);
+                
+                console.log('응답 상태:', response.status);
+                console.log('CORS 헤더:', response.headers.get('access-control-allow-origin'));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Top3 ID 성공:', data);
+                
+                logResult('top3-result', `✅ 성공!\n상태: ${response.status}\nCORS: ${response.headers.get('access-control-allow-origin')}\n데이터: ${JSON.stringify(data, null, 2)}`);
+                
+            } catch (error) {
+                console.error('❌ Top3 API 실패:', error);
+                logResult('top3-result', `❌ 실패!\n에러: ${error.message}`, true);
+            }
+        }
+
+        async function testArtworkDetail() {
+            try {
+                console.log('🔍 작품 상세 정보 테스트 시작...');
+                
+                const response = await fetch(`${EXHIBITION_URL}/api/artworks/1`);
+                
+                console.log('응답 상태:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ 작품 상세 정보 성공:', data);
+                
+                logResult('artwork-result', `✅ 성공!\n상태: ${response.status}\n데이터: ${JSON.stringify(data, null, 2)}`);
+                
+            } catch (error) {
+                console.error('❌ 작품 상세 정보 실패:', error);
+                logResult('artwork-result', `❌ 실패!\n에러: ${error.message}\n\n💡 Exhibition URL이 올바른지 확인하세요.`, true);
+            }
+        }
+
+        async function testFullFlow() {
+            try {
+                console.log('🔍 전체 플로우 테스트 시작...');
+                
+                // 1단계: Top3 ID 가져오기
+                const top3Response = await fetch(`${ARTWORK_STATS_URL}/api/stats/top3`);
+                if (!top3Response.ok) {
+                    throw new Error(`Top3 API 실패: ${top3Response.status}`);
+                }
+                const top3Ids = await top3Response.json();
+                console.log('Top3 IDs:', top3Ids);
+                
+                // 2단계: 각 작품 상세 정보 가져오기
+                const artworkPromises = top3Ids.slice(0, 3).map(async (id) => {
+                    try {
+                        const response = await fetch(`${EXHIBITION_URL}/api/artworks/${id}`);
+                        if (response.ok) {
+                            return await response.json();
+                        } else {
+                            return { id, title: `작품 ${id}`, description: `더미 데이터 (${response.status})` };
+                        }
+                    } catch (error) {
+                        return { id, title: `작품 ${id}`, description: `더미 데이터 (${error.message})` };
+                    }
+                });
+                
+                const artworks = await Promise.all(artworkPromises);
+                console.log('✅ 전체 플로우 성공:', artworks);
+                
+                logResult('flow-result', `✅ 전체 플로우 성공!\n\nTop3 IDs: ${JSON.stringify(top3Ids)}\n\n작품 정보:\n${JSON.stringify(artworks, null, 2)}`);
+                
+            } catch (error) {
+                console.error('❌ 전체 플로우 실패:', error);
+                logResult('flow-result', `❌ 실패!\n에러: ${error.message}`, true);
+            }
+        }
+
+        async function testLikeAPI() {
+            try {
+                console.log('🔍 좋아요 API 테스트 시작...');
+                
+                const response = await fetch(`${ARTWORK_STATS_URL}/api/likes`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ artworkId: 1 })
+                });
+                
+                console.log('응답 상태:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ 좋아요 성공:', data);
+                
+                logResult('like-result', `✅ 성공!\n상태: ${response.status}\n데이터: ${JSON.stringify(data, null, 2)}`);
+                
+            } catch (error) {
+                console.error('❌ 좋아요 실패:', error);
+                logResult('like-result', `❌ 실패!\n에러: ${error.message}`, true);
+            }
+        }
+
+        // 페이지 로드 시 자동으로 Top3 테스트 실행
+        window.onload = function() {
+            console.log('🚀 CORS 테스트 페이지 로드됨');
+            console.log('사용 중인 API URLs:');
+            console.log('- ARTWORK_STATS:', ARTWORK_STATS_URL);
+            console.log('- EXHIBITION:', EXHIBITION_URL);
+            
+            // 5초 후 자동으로 Top3 테스트 실행
+            setTimeout(() => {
+                console.log('🔄 자동 테스트 시작...');
+                testTop3API();
+            }, 1000);
+        };
+    </script>
+</body>
+</html> 
