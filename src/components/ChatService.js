@@ -73,7 +73,9 @@ export const handleRecommendedQuery = (query, language, selectedCharacter, messa
   }, 1000);
 };
 
-export const handleSendMessage = (inputMessage, setInputMessage, messages, setMessages, selectedCharacter, language, formatTime) => {
+import { postConversationMessage } from "../api/conversationMessagesApi";
+
+export const handleSendMessage = (inputMessage, setInputMessage, messages, setMessages, selectedCharacter, language, formatTime, conversationId) => {
   if (inputMessage.trim()) {
     const newMessage = {
       id: messages.length + 1,
@@ -84,19 +86,36 @@ export const handleSendMessage = (inputMessage, setInputMessage, messages, setMe
     setMessages([...messages, newMessage]);
     setInputMessage('');
     
-    // 가이드 응답 시뮬레이션
-    setTimeout(() => {
+    // API가 준비된 경우 서버에 메시지 전송
+    (async () => {
+      if (conversationId) {
+        const res = await postConversationMessage(conversationId, { role: 'USER', content: inputMessage });
+        if (res?.success && res?.data) {
+          // 서버가 미리보기(assistantPreview)를 주면 가이드 응답으로 표시
+          if (res.data.assistantPreview) {
+            setMessages(prev => [...prev, {
+              id: prev.length + 1,
+              type: 'guide',
+              content: res.data.assistantPreview,
+              timestamp: formatTime(new Date())
+            }]);
+          }
+          return;
+        }
+      }
+
+      // API가 없거나 실패 시 기존 로컬 시뮬레이션 응답 제공
       const responseContent = language === 'en'
         ? `That's an interesting question! ${selectedCharacter.nameEn} will explain it in detail. The National Museum of Korea has so many treasures.`
         : `흥미로운 질문이네요! ${selectedCharacter.name}이(가) 자세히 설명해드릴게요. 국립중앙박물관에는 정말 많은 보물들이 있어요.`;
-      
-      const guideResponse = {
-        id: messages.length + 2,
-        type: 'guide',
-        content: responseContent,
-        timestamp: formatTime(new Date())
-      };
-      setMessages(prev => [...prev, guideResponse]);
-    }, 1000);
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          id: prev.length + 1,
+          type: 'guide',
+          content: responseContent,
+          timestamp: formatTime(new Date())
+        }]);
+      }, 600);
+    })();
   }
 };
