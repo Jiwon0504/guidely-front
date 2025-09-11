@@ -39,6 +39,7 @@ export default function App() {
   const [showPhotoCard, setShowPhotoCard] = useState(false);
   const [conversationId, setConversationId] = useState(null);
 
+
   // 시간 포맷 함수
   const formatTime = (date) => {
     if (language === "en") {
@@ -289,7 +290,7 @@ export default function App() {
   if (currentPage === "summary") {
     return (
       <FavoriteSelectPage
-            language={language}
+        language={language}
         selectedCharacter={selectedCharacter}
         selectedFavoriteArt={selectedFavoriteArt}
         setSelectedFavoriteArt={setSelectedFavoriteArt}
@@ -297,6 +298,7 @@ export default function App() {
         setShowPhotoCard={setShowPhotoCard}
         setCurrentPage={setCurrentPage}
         getRarityColor={getRarityColor}
+        sessionId={conversationId}
       />
     );
   }

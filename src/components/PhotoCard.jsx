@@ -1,8 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
-import { X, Download } from "lucide-react";
+import { X, Download, Loader2 } from "lucide-react";
+import { downloadPhotoCard } from "../api/photocard/downloadApi";
 
-export function PhotoCard({ artwork, guide, language, onClose }) {
+export function PhotoCard({ artwork, guide, language, onClose, photoCardData }) {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(null);
+
   // ESC 키로 닫기
   useEffect(() => {
     const handleEsc = (e) => {
