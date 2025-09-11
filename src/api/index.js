@@ -2,8 +2,8 @@
 export { fetchWordCloudData, formatWordCloudData } from './wordCloudApi';
 export { generateEndingCredits, getConversationSummary } from './summaryApi';
 export { fetchTopArtworks, likeArtwork } from './artworkApi';
-export { selectArtwork, getSelectedArtworks, deselectArtwork } from './selectionApi';
-export { downloadPhotoCard, getPhotoCardPreview, getPhotoCardInfo, createPhotoCard } from './downloadApi';
+export { selectArtwork, getSelectedArtworks, deselectArtwork } from './photocard/selectionApi';
+export { downloadPhotoCard, getPhotoCardPreview, getPhotoCardInfo, createPhotoCard } from './photocard/downloadApi';
 
 // 향후 추가될 API들
 // export { fetchRagQuery } from './ragApi';

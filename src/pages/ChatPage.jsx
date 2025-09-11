@@ -69,6 +69,11 @@ export default function ChatPage({
         <div className="space-y-4">
           {messages.map((message) => (
             <div key={message.id} className="space-y-2">
+              {message.type === 'system' ? (
+                <div className="flex justify-center">
+                  <span className="text-xs text-gray-300">{message.content}</span>
+                </div>
+              ) : (
               <div
                 className={`flex ${
                   message.type === 'user' ? 'justify-end' : 'justify-start'
@@ -89,6 +94,7 @@ export default function ChatPage({
                   <p className="text-xs opacity-70 mt-1">{message.timestamp}</p>
                 </div>
               </div>
+              )}
 
               {/* 🗣️ 가이드 메시지일 때만 자동 음성 출력 + 액션 버튼 */}
               {message.type === "guide" && (

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { X, Download, Loader2 } from "lucide-react";
-import { downloadPhotoCard } from "../api/downloadApi";
+import { downloadPhotoCard } from "../api/photocard/downloadApi";
 
 export function PhotoCard({ artwork, guide, language, onClose, photoCardData }) {
   const [isDownloading, setIsDownloading] = useState(false);
