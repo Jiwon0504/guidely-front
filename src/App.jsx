@@ -38,6 +38,8 @@ export default function App() {
   const [selectedFavoriteArt, setSelectedFavoriteArt] = useState(null);
   const [showPhotoCard, setShowPhotoCard] = useState(false);
   const [conversationId, setConversationId] = useState(null);
+
+
   // 시간 포맷 함수
   const formatTime = (date) => {
     if (language === "en") {
