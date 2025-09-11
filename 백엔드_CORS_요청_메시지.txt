@@ -1,0 +1,24 @@
+안녕하세요! 프론트엔드 개발 중 CORS 오류가 발생해서 도움을 요청드립니다.
+
+## 🚨 문제 상황
+프론트엔드(http://localhost:5173)에서 API 호출 시 CORS 정책에 의해 차단되고 있습니다.
+
+## 📍 문제 서버
+https://guidely-artwork-statistic-fah0b3dte6hvech2.koreacentral-01.azurewebsites.net
+
+## 🔧 필요한 CORS 설정
+```
+Access-Control-Allow-Origin: http://localhost:5173
+Access-Control-Allow-Methods: GET, POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+```
+
+## 📋 관련 엔드포인트
+- GET /api/v1/artwork-stats/top3
+- POST /api/likes
+
+설정 완료되면 알려주시면 감사하겠습니다!
+
+상세한 설정 가이드는 프로젝트의 'CORS_설정_요청서.md' 파일을 참고해주세요.
+
+감사합니다! 🙏 

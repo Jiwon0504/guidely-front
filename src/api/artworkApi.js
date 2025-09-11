@@ -9,7 +9,7 @@ const API_BASE_URL = API_CONFIG.ARTWORK_STATS;
  */
 export const fetchTopArtworks = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/artwork-stats/top3`, {
+    const response = await fetch(`${API_BASE_URL}/api/stats/top3`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export const fetchTopArtworks = async () => {
  */
 export const likeArtwork = async (artworkId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/v1/artwork-stats/like`, {
+    const response = await fetch(`${API_BASE_URL}/api/likes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
